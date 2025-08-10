@@ -1,0 +1,30 @@
+// Re-export shared types for backward compatibility
+export type {
+  ObdReading,
+  ObdLogFile,
+  CsvDataPoint,
+  CsvStats,
+  CsvLogInfo,
+  DayLogInfo,
+  DateRangeData,
+  VehicleStats,
+  FaultAlert,
+  DashboardMetrics,
+  EngineHealthMetrics,
+  DiagnosticInsight,
+  EngineBaselineMetrics,
+  EnginePerformanceSnapshot,
+  VehicleMetadata,
+  // API types
+  ApiResponse,
+  TimeseriesDataPoint,
+  TimeseriesDataRequest,
+  TimeseriesDataResponse,
+  TimeseriesAggregateRequest,
+  TimeseriesAggregateResponse,
+  AggregateDataPoint,
+  LatestReadingsRequest,
+  LatestReadingsResponse,
+  VehicleInfoResponse,
+  AvailableMetricsResponse
+} from '@carlens/shared-types';
