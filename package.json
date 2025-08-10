@@ -1,26 +1,52 @@
 {
   "name": "carlens-monorepo",
   "version": "1.0.0",
+  "description": "A modern vehicle analytics dashboard application that processes real-time telemetry data from OBD-II systems",
   "type": "module",
   "private": true,
   "workspaces": [
     "packages/*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:nguyenvanduocit/carlens.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nguyenvanduocit/carlens/issues"
+  },
+  "homepage": "https://github.com/nguyenvanduocit/carlens#readme",
+  "keywords": [
+    "obd-ii",
+    "vehicle-analytics",
+    "telemetry",
+    "dashboard",
+    "vue3",
+    "fastify",
+    "mongodb",
+    "typescript",
+    "bun",
+    "automotive",
+    "real-time",
+    "data-visualization"
+  ],
+  "author": "Carlens Contributors",
+  "license": "MIT",
   "scripts": {
+    "start": "bun run server & bun run webapp",
     "server": "bun run --cwd packages/server start",
-    "dev:client": "bun run --cwd packages/carlen dev",
-    "build:client": "bun run --cwd packages/carlen build",
+    "webapp": "bun run --cwd packages/webapp dev",
     "shared:build": "bun run --cwd packages/shared-types build",
     "sync": "bun ./packages/sync/sync-to-mongodb.ts",
-    "lint": "bun run --filter '*' lint",
+    "lint": "bun run -cwd packages/webapp lint",
     "type-check": "bun run --filter '*' type-check"
   },
   "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "dotenv": "^17.2.1",
     "echarts": "^6.0.0",
-    "mongodb": "^6.18.0",
-    "vue-echarts": "^7.0.3",
     "fastify": "^5.2.0",
-    "@fastify/cors": "^10.0.1"
+    "mongodb": "^6.18.0",
+    "vue-echarts": "^7.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.2.0",
