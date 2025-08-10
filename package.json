@@ -1,0 +1,29 @@
+{
+  "name": "carlens-monorepo",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "server": "bun run --cwd packages/server start",
+    "dev:client": "bun run --cwd packages/carlen dev",
+    "build:client": "bun run --cwd packages/carlen build",
+    "shared:build": "bun run --cwd packages/shared-types build",
+    "sync": "bun ./packages/sync/sync-to-mongodb.ts",
+    "lint": "bun run --filter '*' lint",
+    "type-check": "bun run --filter '*' type-check"
+  },
+  "dependencies": {
+    "echarts": "^6.0.0",
+    "mongodb": "^6.18.0",
+    "vue-echarts": "^7.0.3",
+    "fastify": "^5.2.0",
+    "@fastify/cors": "^10.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "typescript": "~5.8.0"
+  }
+}

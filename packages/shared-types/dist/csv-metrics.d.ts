@@ -1,0 +1,37 @@
+export declare const CSV_METRICS: {
+    readonly TIME: "Time (sec)";
+    readonly ENGINE_RPM: "Engine RPM (RPM)";
+    readonly CALCULATED_LOAD_VALUE_PCT: "Calculated load value (%)";
+    readonly ABSOLUTE_LOAD_VALUE_PCT: "Absolute load value (%)";
+    readonly ACTUAL_ENGINE_TORQUE_PCT: "Actual engine - percent torque (%)";
+    readonly ENGINE_TORQUE_IDLE_PCT: "Engine percent torque at idle (%)";
+    readonly ENGINE_POWER_PS: "Engine Power (PS)";
+    readonly ENGINE_TORQUE_NM: "Engine Torque (N•m)";
+    readonly ENGINE_COOLANT_TEMP_C: "Engine coolant temperature (°C)";
+    readonly INTAKE_AIR_TEMP_C: "Intake air temperature (°C)";
+    readonly ENGINE_OIL_TEMP_C: "Engine oil temperature (°C)";
+    readonly TRANSMISSION_FLUID_TEMP_C: "Raw Transmission Fluid Temperature (TFT) (°C)";
+    readonly INTAKE_MANIFOLD_PRESSURE_KPA: "Intake manifold absolute pressure (kPa)";
+    readonly BAROMETRIC_PRESSURE_KPA: "Barometric pressure (kPa)";
+    readonly FUEL_RAIL_PRESSURE_KPA: "Fuel rail pressure (absolute) (kPa)";
+    readonly FUEL_PRESSURE_SENSOR_B_KPA: "Fuel Pressure Sensor B - Absolute Pressure - Raw (kPa)";
+    readonly BOOST_KPA: "Boost (kPa)";
+    readonly VEHICLE_SPEED_KMH: "Vehicle speed (km/h)";
+    readonly ACCELERATION_MS2: "Acceleration (m/s²)";
+    readonly STEERING_ANGLE_DEG: "Steering Pinion Angle (deg)";
+    readonly ACCELERATOR_PEDAL_POSITION_PCT: "Accelerator pedal position D (%)";
+    readonly THROTTLE_POSITION_DESIRED_PCT: "Throttle Position - Desired (%)";
+    readonly MASS_AIR_FLOW_RATE_GS: "Mass air flow rate (g/s)";
+    readonly ENGINE_FUEL_RATE_LH: "Engine fuel rate (l/hr)";
+    readonly FUEL_RATE_ENGINE_GS: "Fuel Rate - Engine Fuel Rate (g/s)";
+    readonly FUEL_INJECTION_TIMING_DEG: "Fuel injection timing (deg)";
+    readonly TRANSMISSION_GEAR: "Transmission Gear Engaged";
+    readonly LATITUDE_DEG: "Latitude (deg)";
+    readonly LONGITUDE_DEG: "Longitude (deg)";
+};
+export type CsvMetricKey = keyof typeof CSV_METRICS;
+export type CsvMetricValue = (typeof CSV_METRICS)[CsvMetricKey];
+export declare const AVAILABLE_METRICS: ("Time (sec)" | "Engine RPM (RPM)" | "Calculated load value (%)" | "Absolute load value (%)" | "Actual engine - percent torque (%)" | "Engine percent torque at idle (%)" | "Engine Power (PS)" | "Engine Torque (N•m)" | "Engine coolant temperature (°C)" | "Intake air temperature (°C)" | "Engine oil temperature (°C)" | "Raw Transmission Fluid Temperature (TFT) (°C)" | "Intake manifold absolute pressure (kPa)" | "Barometric pressure (kPa)" | "Fuel rail pressure (absolute) (kPa)" | "Fuel Pressure Sensor B - Absolute Pressure - Raw (kPa)" | "Boost (kPa)" | "Vehicle speed (km/h)" | "Acceleration (m/s²)" | "Steering Pinion Angle (deg)" | "Accelerator pedal position D (%)" | "Throttle Position - Desired (%)" | "Mass air flow rate (g/s)" | "Engine fuel rate (l/hr)" | "Fuel Rate - Engine Fuel Rate (g/s)" | "Fuel injection timing (deg)" | "Transmission Gear Engaged" | "Latitude (deg)" | "Longitude (deg)")[];
+export declare function isKnownMetric(header: string): header is CsvMetricValue;
+export declare function generateMetricConstantName(metricValue: string): string;
+//# sourceMappingURL=csv-metrics.d.ts.map
