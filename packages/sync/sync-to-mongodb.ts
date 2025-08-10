@@ -1,16 +1,34 @@
 #!/usr/bin/env bun
 
+import dotenv from 'dotenv';
 import { readdir, readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { join, dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env from project root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, '../../packages/server/.env') });
 import { MongoClient, Db } from 'mongodb';
 import { isKnownMetric, CSV_METRICS, type CsvMetricValue } from '@carlens/shared-types';
 
-const CSV_DIR = '/path/to/csv/data';
+/**
+ * TIMEZONE HANDLING:
+ * - CSV files contain timestamps without timezone information
+ * - All CSV timestamps are assumed to be in GMT+7 (Asia/Bangkok) timezone
+ * - Timestamps are converted to UTC when storing in MongoDB
+ * - Client displays timestamps in GMT+7 for user consistency
+ */
 
-// MongoDB configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017
-const DATABASE_NAME = process.env.DATABASE_NAME || 'carlens_vehicle_data';
-const TIME_SERIES_COLLECTION = 'vehicle_telemetry';
+// Load environment variables from .env file
+const CSV_DATA_PATH = process.env.CSV_DATA_PATH || '/path/to/csv/data';
+const VEHICLE_ID = process.env.VEHICLE_ID || 'RL2UMFC50RYR87488';
+const CSV_DIR = join(CSV_DATA_PATH, VEHICLE_ID);
+
+// MongoDB configuration from .env file
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const DATABASE_NAME = process.env.DATABASE_NAME || 'carlens';
+const TIME_SERIES_COLLECTION = process.env.COLLECTION_NAME || 'vehicle_telemetry';
 
 interface VehicleDocument {
   timestamp: Date;
@@ -44,8 +62,9 @@ let db: Db;
 function parseStartTime(headerLine: string): Date {
   const match = headerLine.match(/# StartTime = (.+)/);
   if (!match) throw new Error('Could not parse start time from header');
-
-  return new Date(match[1]);
+  const localDate = new Date(match[1]);
+  const utcDate = new Date(localDate.getTime());
+  return utcDate;
 }
 
 function parseCSVData(content: string, fileName: string): ParsedCSVData {
@@ -57,9 +76,9 @@ function parseCSVData(content: string, fileName: string): ParsedCSVData {
   const headers = lines[1].split(',').map(h => h.trim());
   const data: VehicleDocument[] = [];
 
-  // Extract VIN from directory path for metadata
+  // Use vehicle ID from environment or extract from directory path
   const vinMatch = CSV_DIR.match(/([A-HJ-NPR-Z0-9]{17})$/);
-  const vehicleId = vinMatch ? vinMatch[1] : 'RL2UMFC50RYR87488';
+  const vehicleId = VEHICLE_ID || (vinMatch ? vinMatch[1] : 'RL2UMFC50RYR87488');
 
   // Validate and log unknown metrics
   const unknownMetrics = headers.filter(header => !isKnownMetric(header) && header !== CSV_METRICS.TIME);
@@ -109,6 +128,12 @@ function parseCSVData(content: string, fileName: string): ParsedCSVData {
 
     // Skip datapoints with invalid GPS coordinates (0 values)
     if (!hasValidGPS) {
+      continue;
+    }
+
+    // Skip datapoints with 0 RPM (engine not running)
+    const rpmValue = measurements[CSV_METRICS.ENGINE_RPM];
+    if (typeof rpmValue === 'number' && rpmValue === 0) {
       continue;
     }
 

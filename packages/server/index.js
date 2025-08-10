@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { MongoClient } from 'mongodb';
-import { CSV_METRICS } from '@carlens/shared-types';
 
-// MongoDB configuration - reusing from sync script
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017
-const DATABASE_NAME = process.env.DATABASE_NAME || 'carlens_vehicle_data';
-const TIME_SERIES_COLLECTION = 'vehicle_telemetry';
+// Load .env from project root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, './.env') });
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const DATABASE_NAME = process.env.DATABASE_NAME || 'carlens';
+const TIME_SERIES_COLLECTION = process.env.COLLECTION_NAME || 'vehicle_telemetry';
 
 let client;
 let db;
@@ -40,7 +46,7 @@ async function connectToMongoDB() {
 // Health check endpoint
 fastify.get('/health', async (request, reply) => {
   request.log.info({ path: '/health' }, 'Health check');
-  return { status: 'ok', timestamp: new Date().toISOString() };
+  return { status: 'ok', timestamp: new Date() };
 });
 
 // Get basic vehicle info and data range
@@ -72,10 +78,12 @@ fastify.get('/api/vehicle/info', async (request, reply) => {
       )
     ]);
 
+    const dataRangeConverted = dataRange[0] || {};
+
     const payload = {
       vehicle: vehicleInfo?.metadata || {},
-      dataRange: dataRange[0] || {},
-      timestamp: new Date().toISOString()
+      dataRange: dataRangeConverted,
+      timestamp: new Date()
     };
     request.log.info({ path: '/api/vehicle/info', payloadSummary: { hasVehicle: !!payload.vehicle, hasRange: !!payload.dataRange } }, 'Vehicle info response');
     return payload;
@@ -209,7 +217,7 @@ fastify.get('/api/timeseries/data', async (request, reply) => {
     }
 
     const payload = {
-      data,
+      data: data,
       metadata: {
         count: data.length,
         metrics: requestedMetrics,
