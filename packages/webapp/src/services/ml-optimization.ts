@@ -115,29 +115,34 @@ export class MLOptimizationService {
    * Prepare and normalize training data
    */
   private prepareTrainingData(dataPoints: TimeseriesDataPoint[]) {
-    // Filter valid data points
-    const validData = dataPoints.filter(point => 
-      point.rpm > 0 &&
-      point.speed > 0 &&
-      point.fuelRate > 0 &&
-      point.engineLoad > 0 &&
-      point.power > 0
-    )
+    // Filter valid data points and handle different data structures
+    const validData = dataPoints.filter(point => {
+      // Check if data is in measurements object or directly on point
+      const rpm = point.rpm ?? point.measurements?.rpm ?? 0
+      const speed = point.speed ?? point.measurements?.speed ?? 0
+      const fuelRate = point.fuelRate ?? point.measurements?.fuelRate ?? 0
+      const engineLoad = point.engineLoad ?? point.measurements?.engineLoad ?? 0
+      const power = point.power ?? point.measurements?.power ?? point.enginePower ?? point.measurements?.enginePower ?? 0
+      
+      return rpm > 0 && speed > 0 && fuelRate > 0 && engineLoad > 0 && power > 0
+    })
 
     // Extract features: [rpm, speed, load, throttle, intakePressure, coolantTemp]
-    const featuresArray = validData.map(point => [
-      point.rpm,
-      point.speed,
-      point.engineLoad,
-      point.throttle,
-      point.intakePressure || 100,
-      point.coolantTemp || 90
-    ])
+    const featuresArray = validData.map(point => {
+      const rpm = point.rpm ?? point.measurements?.rpm ?? 0
+      const speed = point.speed ?? point.measurements?.speed ?? 0
+      const engineLoad = point.engineLoad ?? point.measurements?.engineLoad ?? 0
+      const throttle = point.throttle ?? point.throttlePos ?? point.measurements?.throttle ?? point.measurements?.throttlePos ?? 0
+      const intakePressure = point.intakePressure ?? point.measurements?.intakePressure ?? 100
+      const coolantTemp = point.coolantTemp ?? point.measurements?.coolantTemp ?? 90
+      
+      return [rpm, speed, engineLoad, throttle, intakePressure, coolantTemp]
+    })
 
     // Calculate fuel efficiency (km/L) as label
     const labelsArray = validData.map(point => {
-      const kmPerHour = point.speed
-      const litersPerHour = point.fuelRate
+      const kmPerHour = point.speed ?? point.measurements?.speed ?? 0
+      const litersPerHour = point.fuelRate ?? point.measurements?.fuelRate ?? 0
       return litersPerHour > 0 ? [kmPerHour / litersPerHour] : [0]
     })
 
@@ -175,7 +180,7 @@ export class MLOptimizationService {
    * Find optimal RPM using the trained model
    */
   async findOptimalRpm(
-    currentData: TimeseriesDataPoint,
+    currentData: TimeseriesDataPoint | null,
     historicalData: TimeseriesDataPoint[]
   ): Promise<MLOptimizationResult> {
     // Train model if not already trained
@@ -183,11 +188,19 @@ export class MLOptimizationService {
       await this.trainModel(historicalData)
     }
 
-    if (!this.model || !this.normalizers.inputMean) {
-      // Fallback to statistical analysis if model not available
+    if (!this.model || !this.normalizers.inputMean || !currentData) {
+      // Fallback to statistical analysis if model not available or no current data
       return this.statisticalOptimization(historicalData)
     }
 
+    // Extract current data values with defaults
+    const currentSpeed = currentData.speed ?? currentData.measurements?.speed ?? 60
+    const currentLoad = currentData.engineLoad ?? currentData.measurements?.engineLoad ?? 50
+    const currentThrottle = currentData.throttle ?? currentData.throttlePos ?? currentData.measurements?.throttle ?? currentData.measurements?.throttlePos ?? 50
+    const currentIntakePressure = currentData.intakePressure ?? currentData.measurements?.intakePressure ?? 100
+    const currentCoolantTemp = currentData.coolantTemp ?? currentData.measurements?.coolantTemp ?? 90
+    const currentGear = currentData.gear ?? currentData.measurements?.gear ?? 1
+    
     // Create RPM range to test (500 to 4000 in steps of 100)
     const rpmRange: number[] = []
     for (let rpm = 500; rpm <= 4000; rpm += 100) {
@@ -197,11 +210,11 @@ export class MLOptimizationService {
     // Prepare test data with current conditions but different RPMs
     const testData = rpmRange.map(rpm => [
       rpm,
-      currentData.speed,
-      currentData.engineLoad,
-      currentData.throttle,
-      currentData.intakePressure || 100,
-      currentData.coolantTemp || 90
+      currentSpeed,
+      currentLoad,
+      currentThrottle,
+      currentIntakePressure,
+      currentCoolantTemp
     ])
 
     // Normalize and predict
@@ -218,15 +231,13 @@ export class MLOptimizationService {
     // Find optimal RPM (highest predicted efficiency)
     const efficiencyValues = await denormalizedPredictions.array() as number[][]
     let maxEfficiency = -Infinity
-    let optimalRpm = currentData.rpm
-    let optimalIndex = 0
+    let optimalRpm = currentData.rpm ?? currentData.measurements?.rpm ?? 2000
 
     efficiencyValues.forEach((value, index) => {
       const efficiency = value[0]
       if (efficiency > maxEfficiency) {
         maxEfficiency = efficiency
         optimalRpm = rpmRange[index]
-        optimalIndex = index
       }
     })
 
@@ -256,8 +267,8 @@ export class MLOptimizationService {
       },
       recommendations: {
         rpmRange: [Math.min(...efficientRpmRange), Math.max(...efficientRpmRange)] as [number, number],
-        targetSpeed: currentData.speed,
-        shiftPoint: this.calculateShiftPoint(optimalRpm, currentData.gear || 1)
+        targetSpeed: currentSpeed,
+        shiftPoint: currentGear ? this.calculateShiftPoint(optimalRpm, currentGear) : undefined
       }
     }
   }
@@ -285,10 +296,14 @@ export class MLOptimizationService {
 
     // Calculate fuel efficiency for each data point
     const efficiencyData = dataPoints
-      .filter(point => point.fuelRate > 0 && point.speed > 0)
+      .filter(point => {
+        const fuelRate = point.fuelRate ?? point.measurements?.fuelRate ?? 0
+        const speed = point.speed ?? point.measurements?.speed ?? 0
+        return fuelRate > 0 && speed > 0
+      })
       .map(point => ({
-        rpm: point.rpm,
-        efficiency: point.speed / point.fuelRate
+        rpm: point.rpm ?? point.measurements?.rpm ?? 0,
+        efficiency: (point.speed ?? point.measurements?.speed ?? 0) / (point.fuelRate ?? point.measurements?.fuelRate ?? 1)
       }))
 
     if (efficiencyData.length === 0) {
@@ -322,20 +337,20 @@ export class MLOptimizationService {
     let optimalRpm = 2000
     let maxMedianEfficiency = 0
     
-    rpmBuckets.forEach((efficiencies, rpm) => {
+    rpmBuckets.forEach((efficiencies, rpmBucket) => {
       if (efficiencies.length >= 5) { // Need enough samples
         const sorted = [...efficiencies].sort((a, b) => a - b)
         const median = sorted[Math.floor(sorted.length / 2)]
         if (median > maxMedianEfficiency) {
           maxMedianEfficiency = median
-          optimalRpm = rpm
+          optimalRpm = rpmBucket
         }
       }
     })
 
     // Calculate confidence based on data quality
     const dataPointsInOptimalRange = efficiencyData.filter(
-      d => Math.abs(d.rpm - optimalRpm) <= 200
+      d => Math.abs((d.rpm ?? 0) - optimalRpm) <= 200
     ).length
     const confidence = Math.min(1, dataPointsInOptimalRange / 50)
 

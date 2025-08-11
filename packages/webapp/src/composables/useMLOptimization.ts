@@ -42,7 +42,7 @@ export function useMLOptimization() {
    * Find optimal RPM using ML model
    */
   const findOptimalRpm = async (
-    currentData: TimeseriesDataPoint,
+    currentData: TimeseriesDataPoint | null,
     historicalData: TimeseriesDataPoint[]
   ) => {
     if (isOptimizing.value) return

@@ -31,11 +31,11 @@ export function useApiVehicleData(autoRefresh = false, refreshInterval = 5000) {
         { reason: 'Fetching vehicle telemetry data', source: 'useApiVehicleData' }
       )
       
-      if (response.success && response.data) {
+      if (response.data) {
         data.value = response.data
         lastFetch.value = new Date()
       } else {
-        throw new Error(response.error || 'Failed to fetch data')
+        throw new Error('No data received from API')
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Unknown error occurred'
@@ -53,7 +53,7 @@ export function useApiVehicleData(autoRefresh = false, refreshInterval = 5000) {
         { reason: 'Fetching latest readings', source: 'useApiVehicleData' }
       )
       
-      if (response.success && response.data && response.data.length > 0) {
+      if (response.data && response.data.length > 0) {
         // Append new data points that don't already exist
         const existingTimestamps = new Set(data.value.map(d => d.timestamp))
         const newPoints = response.data.filter(point => !existingTimestamps.has(point.timestamp))
