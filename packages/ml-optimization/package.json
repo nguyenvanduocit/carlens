@@ -1,0 +1,25 @@
+{
+  "name": "@carlens/ml-optimization",
+  "version": "1.0.0",
+  "description": "Machine learning optimization for vehicle fuel efficiency",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "train": "bun run src/train.ts",
+    "find-optimal-rpm": "bun run src/find-optimal-rpm.ts",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0",
+    "@carlens/shared-types": "workspace:*",
+    "dotenv": "^17.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "typescript": "~5.8.0"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
