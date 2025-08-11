@@ -32,53 +32,6 @@ export class MLOptimizationService {
     outputStd: null
   }
 
-  /**
-   * Generate mock vehicle data for ML demo when real data is not available
-   */
-  private generateMockData(count: number): TimeseriesDataPoint[] {
-    const mockData: TimeseriesDataPoint[] = []
-    const startTime = new Date('2025-08-10T10:00:00Z')
-
-    for (let i = 0; i < count; i++) {
-      const timestamp = new Date(startTime.getTime() + i * 5000) // 5 second intervals
-
-      // Generate realistic vehicle data with some correlation
-      const rpm = Math.random() * 3000 + 800 // 800-3800 RPM
-      const speed = Math.min(rpm * 0.02 + Math.random() * 10, 120) // Speed correlated with RPM
-      const engineLoad = Math.min(speed * 0.7 + Math.random() * 20, 100) // Load correlated with speed
-      const throttle = Math.min(engineLoad * 0.8 + Math.random() * 15, 100)
-      
-      // Fuel efficiency decreases at very high and very low RPM
-      const optimalRpm = 2000
-      const rpmEfficiencyFactor = 1 - Math.abs(rpm - optimalRpm) / 2000 * 0.5
-      const baseFuelRate = (speed * 0.08 + engineLoad * 0.05) * (2 - rpmEfficiencyFactor)
-      const fuelRate = Math.max(0.5, baseFuelRate + (Math.random() - 0.5) * 2)
-
-      // Other parameters
-      const intakePressure = 95 + Math.random() * 10
-      const coolantTemp = 85 + Math.random() * 10
-      const power = (rpm * throttle / 100) * 0.1 + Math.random() * 10
-
-      mockData.push({
-        timestamp,
-        metadata: { vehicleId: 'RL2UMFC50RYR87488' },
-        rpm,
-        speed,
-        fuelRate,
-        engineLoad,
-        throttle,
-        throttlePos: throttle, // Alias
-        intakePressure,
-        coolantTemp,
-        power,
-        enginePower: power, // Alias
-        gear: Math.floor(speed / 25) + 1
-      })
-    }
-
-    console.log(`Generated ${count} mock data points for ML training`)
-    return mockData
-  }
 
   /**
    * Train a neural network model to predict fuel efficiency based on vehicle parameters
@@ -97,24 +50,8 @@ export class MLOptimizationService {
     this.isTraining = true
 
     try {
-      // Check if we have any valid data, if not generate mock data for demo
-      const validDataCheck = dataPoints.filter(point => {
-        const rpm = point.rpm ?? point.measurements?.rpm ?? 0
-        const speed = point.speed ?? point.measurements?.speed ?? 0
-        const fuelRate = point.fuelRate ?? point.measurements?.fuelRate ?? 0
-        return rpm > 0 && speed > 0 && fuelRate > 0
-      })
-
-      let trainingData: TimeseriesDataPoint[]
-      if (validDataCheck.length === 0) {
-        console.warn('No valid measurements found in data, generating mock data for ML demo')
-        trainingData = this.generateMockData(200)
-      } else {
-        trainingData = dataPoints
-      }
-
-      // Prepare training data
-      const { features, labels, normalizers } = this.prepareTrainingData(trainingData)
+      // Prepare training data from real vehicle data
+      const { features, labels, normalizers } = this.prepareTrainingData(dataPoints)
       this.normalizers = normalizers
 
       // Create model architecture
@@ -184,14 +121,14 @@ export class MLOptimizationService {
    * Prepare and normalize training data
    */
   private prepareTrainingData(dataPoints: TimeseriesDataPoint[]) {
-    // Filter valid data points and handle different data structures
+    // Filter valid data points - data comes in measurements object from API
     const validData = dataPoints.filter(point => {
-      // Check if data is in measurements object or directly on point
-      const rpm = point.rpm ?? point.measurements?.rpm ?? 0
-      const speed = point.speed ?? point.measurements?.speed ?? 0
-      const fuelRate = point.fuelRate ?? point.measurements?.fuelRate ?? 0
-      const engineLoad = point.engineLoad ?? point.measurements?.engineLoad ?? 0
-      const power = point.power ?? point.measurements?.power ?? point.enginePower ?? point.measurements?.enginePower ?? 0
+      const measurements = point.measurements || {}
+      const rpm = measurements.rpm ?? 0
+      const speed = measurements.speed ?? 0
+      const fuelRate = measurements.fuelRate ?? 0
+      const engineLoad = measurements.engineLoad ?? 0
+      const power = measurements.power ?? 0
       
       return rpm > 0 && speed > 0 && fuelRate > 0 && engineLoad > 0 && power > 0
     })
@@ -203,20 +140,22 @@ export class MLOptimizationService {
 
     // Extract features: [rpm, speed, load, throttle, intakePressure, coolantTemp]
     const featuresArray = validData.map(point => {
-      const rpm = point.rpm ?? point.measurements?.rpm ?? 0
-      const speed = point.speed ?? point.measurements?.speed ?? 0
-      const engineLoad = point.engineLoad ?? point.measurements?.engineLoad ?? 0
-      const throttle = point.throttle ?? point.throttlePos ?? point.measurements?.throttle ?? point.measurements?.throttlePos ?? 0
-      const intakePressure = point.intakePressure ?? point.measurements?.intakePressure ?? 100
-      const coolantTemp = point.coolantTemp ?? point.measurements?.coolantTemp ?? 90
+      const measurements = point.measurements || {}
+      const rpm = measurements.rpm ?? 0
+      const speed = measurements.speed ?? 0
+      const engineLoad = measurements.engineLoad ?? 0
+      const throttle = measurements.throttle ?? 0
+      const intakePressure = measurements.intakePressure ?? 100
+      const coolantTemp = measurements.coolantTemp ?? 90
       
       return [rpm, speed, engineLoad, throttle, intakePressure, coolantTemp]
     })
 
     // Calculate fuel efficiency (km/L) as label
     const labelsArray = validData.map(point => {
-      const kmPerHour = point.speed ?? point.measurements?.speed ?? 0
-      const litersPerHour = point.fuelRate ?? point.measurements?.fuelRate ?? 0
+      const measurements = point.measurements || {}
+      const kmPerHour = measurements.speed ?? 0
+      const litersPerHour = measurements.fuelRate ?? 0
       return litersPerHour > 0 ? [kmPerHour / litersPerHour] : [0]
     })
 
@@ -272,13 +211,14 @@ export class MLOptimizationService {
       return this.statisticalOptimization(historicalData)
     }
 
-    // Extract current data values with defaults
-    const currentSpeed = currentData.speed ?? currentData.measurements?.speed ?? 60
-    const currentLoad = currentData.engineLoad ?? currentData.measurements?.engineLoad ?? 50
-    const currentThrottle = currentData.throttle ?? currentData.throttlePos ?? currentData.measurements?.throttle ?? currentData.measurements?.throttlePos ?? 50
-    const currentIntakePressure = currentData.intakePressure ?? currentData.measurements?.intakePressure ?? 100
-    const currentCoolantTemp = currentData.coolantTemp ?? currentData.measurements?.coolantTemp ?? 90
-    const currentGear = currentData.gear ?? currentData.measurements?.gear ?? 1
+    // Extract current data values with defaults from measurements object
+    const measurements = currentData.measurements || {}
+    const currentSpeed = measurements.speed ?? 60
+    const currentLoad = measurements.engineLoad ?? 50
+    const currentThrottle = measurements.throttle ?? 50
+    const currentIntakePressure = measurements.intakePressure ?? 100
+    const currentCoolantTemp = measurements.coolantTemp ?? 90
+    const currentGear = measurements.gear ?? 1
     
     // Create RPM range to test (500 to 4000 in steps of 100)
     const rpmRange: number[] = []
@@ -310,7 +250,7 @@ export class MLOptimizationService {
     // Find optimal RPM (highest predicted efficiency)
     const efficiencyValues = await denormalizedPredictions.array() as number[][]
     let maxEfficiency = -Infinity
-    let optimalRpm = currentData.rpm ?? currentData.measurements?.rpm ?? 2000
+    let optimalRpm = measurements.rpm ?? 2000
 
     efficiencyValues.forEach((value, index) => {
       const efficiency = value[0]
@@ -376,14 +316,18 @@ export class MLOptimizationService {
     // Calculate fuel efficiency for each data point
     const efficiencyData = dataPoints
       .filter(point => {
-        const fuelRate = point.fuelRate ?? point.measurements?.fuelRate ?? 0
-        const speed = point.speed ?? point.measurements?.speed ?? 0
+        const measurements = point.measurements || {}
+        const fuelRate = measurements.fuelRate ?? 0
+        const speed = measurements.speed ?? 0
         return fuelRate > 0 && speed > 0
       })
-      .map(point => ({
-        rpm: point.rpm ?? point.measurements?.rpm ?? 0,
-        efficiency: (point.speed ?? point.measurements?.speed ?? 0) / (point.fuelRate ?? point.measurements?.fuelRate ?? 1)
-      }))
+      .map(point => {
+        const measurements = point.measurements || {}
+        return {
+          rpm: measurements.rpm ?? 0,
+          efficiency: (measurements.speed ?? 0) / (measurements.fuelRate ?? 1)
+        }
+      })
 
     if (efficiencyData.length === 0) {
       return {
@@ -429,7 +373,7 @@ export class MLOptimizationService {
 
     // Calculate confidence based on data quality
     const dataPointsInOptimalRange = efficiencyData.filter(
-      d => Math.abs((d.rpm ?? 0) - optimalRpm) <= 200
+      d => Math.abs(d.rpm - optimalRpm) <= 200
     ).length
     const confidence = Math.min(1, dataPointsInOptimalRange / 50)
 

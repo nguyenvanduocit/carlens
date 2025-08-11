@@ -27,7 +27,10 @@ export function useApiVehicleData(autoRefresh = false, refreshInterval = 5000) {
 
     try {
       const response = await vehicleApi.getTimeseriesData(
-        { limit },
+        { 
+          limit,
+          metrics: 'speed,rpm,fuelRate,engineLoad,power,throttle,coolantTemp,intakePressure,intakeTemp,barometricPressure,airFlow,gear,torque'
+        },
         { reason: 'Fetching vehicle telemetry data', source: 'useApiVehicleData' }
       )
       

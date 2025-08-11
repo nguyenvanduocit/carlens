@@ -92,6 +92,28 @@ fastify.get('/api/vehicle/info', async (request, reply) => {
   }
 });
 
+// Metric name mapping from API names to CSV field names
+const METRIC_MAPPING = {
+  'speed': 'Vehicle speed (km/h)',
+  'rpm': 'Engine RPM (RPM)', 
+  'coolantTemp': 'Engine coolant temperature (°C)',
+  'throttlePos': 'Throttle Position - Desired (%)',
+  'throttle': 'Throttle Position - Desired (%)',
+  'fuelRate': 'Engine fuel rate (l/hr)',
+  'engineLoad': 'Calculated load value (%)',
+  'power': 'Engine Power (PS)',
+  'enginePower': 'Engine Power (PS)',
+  'torque': 'Engine Torque (N•m)',
+  'engineTorque': 'Engine Torque (N•m)',
+  'intakePressure': 'Intake manifold absolute pressure (kPa)',
+  'intakeTemp': 'Intake air temperature (°C)',
+  'barometricPressure': 'Barometric pressure (kPa)',
+  'airFlow': 'Mass air flow rate (g/s)',
+  'gear': 'Transmission Gear Engaged',
+  'latitude': 'Latitude (deg)',
+  'longitude': 'Longitude (deg)'
+};
+
 // Get timeseries data with filters and aggregation
 fastify.get('/api/timeseries/data', async (request, reply) => {
   try {
@@ -125,8 +147,9 @@ fastify.get('/api/timeseries/data', async (request, reply) => {
       matchConditions['metadata.vehicleId'] = vehicleId;
     }
 
-    // Parse requested metrics
-    const requestedMetrics = metrics.split(',').map(m => m.trim());
+    // Parse requested metrics and map to CSV field names
+    const requestedApiMetrics = metrics.split(',').map(m => m.trim());
+    const requestedMetrics = requestedApiMetrics.map(metric => METRIC_MAPPING[metric] || metric);
 
     let data;
 
@@ -182,8 +205,9 @@ fastify.get('/api/timeseries/data', async (request, reply) => {
       // Transform aggregated data to match expected format
       data = aggregatedData.map(item => {
         const measurements = {};
-        requestedMetrics.forEach(metric => {
-          measurements[metric] = item[metric];
+        requestedMetrics.forEach((csvFieldName, index) => {
+          const apiFieldName = requestedApiMetrics[index];
+          measurements[apiFieldName] = item[csvFieldName];
         });
 
         return {
@@ -205,22 +229,37 @@ fastify.get('/api/timeseries/data', async (request, reply) => {
         'metadata.vehicleId': 1
       };
 
-      requestedMetrics.forEach(metric => {
-        projection[`measurements.${metric}`] = 1;
+      requestedMetrics.forEach(csvFieldName => {
+        projection[`measurements.${csvFieldName}`] = 1;
       });
 
-      data = await collection
+      const rawData = await collection
         .find(matchConditions, { projection })
         .sort({ timestamp: 1 })
         .limit(parseInt(limit))
         .toArray();
+
+      // Transform raw data to map CSV field names back to API field names
+      data = rawData.map(item => {
+        const measurements = {};
+        requestedMetrics.forEach((csvFieldName, index) => {
+          const apiFieldName = requestedApiMetrics[index];
+          measurements[apiFieldName] = item.measurements?.[csvFieldName];
+        });
+
+        return {
+          timestamp: item.timestamp,
+          metadata: item.metadata,
+          measurements
+        };
+      });
     }
 
     const payload = {
       data: data,
       metadata: {
         count: data.length,
-        metrics: requestedMetrics,
+        metrics: requestedApiMetrics,
         interval: interval || 'raw',
         operation: interval ? operation : null,
         timeRange: {
