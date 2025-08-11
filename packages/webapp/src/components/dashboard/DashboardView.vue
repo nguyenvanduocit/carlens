@@ -31,6 +31,9 @@
         <!-- Optimization Analysis -->
         <OptimizationAnalysis />
 
+        <!-- ML Optimization Demo -->
+        <MLOptimizationDemo />
+
         <!-- Multi-metric Configurable Chart -->
         <MultiMetricLineChart />
 
@@ -54,6 +57,7 @@ import type { DataInterval } from './IntervalSelector.vue'
 import MultiMetricLineChart from './MultiMetricLineChart.vue'
 import LeafletJourney from './LeafletJourney.vue'
 import OptimizationAnalysis from './OptimizationAnalysis.vue'
+import MLOptimizationDemo from './MLOptimizationDemo.vue'
 
 // Use new composables
 import { useChartEventBus, type ChartRefreshPayload } from '@/composables/useChartEventBus'

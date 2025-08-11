@@ -1,6 +1,6 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { mlOptimizationService, type MLOptimizationResult } from '@/services/ml-optimization'
-import type { VehicleDataPoint } from '@carlens/shared-types'
+import type { TimeseriesDataPoint } from '@carlens/shared-types'
 
 export function useMLOptimization() {
   const isTraining = ref(false)
@@ -12,7 +12,7 @@ export function useMLOptimization() {
   /**
    * Train the ML model with historical data
    */
-  const trainModel = async (dataPoints: VehicleDataPoint[]) => {
+  const trainModel = async (dataPoints: TimeseriesDataPoint[]) => {
     if (isTraining.value) return
     
     isTraining.value = true
@@ -42,8 +42,8 @@ export function useMLOptimization() {
    * Find optimal RPM using ML model
    */
   const findOptimalRpm = async (
-    currentData: VehicleDataPoint,
-    historicalData: VehicleDataPoint[]
+    currentData: TimeseriesDataPoint,
+    historicalData: TimeseriesDataPoint[]
   ) => {
     if (isOptimizing.value) return
     

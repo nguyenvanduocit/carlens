@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import type { VehicleDataPoint } from '@carlens/shared-types'
+import type { TimeseriesDataPoint } from '@carlens/shared-types'
 
 export interface MLOptimizationResult {
   optimalRpm: number
@@ -35,7 +35,7 @@ export class MLOptimizationService {
   /**
    * Train a neural network model to predict fuel efficiency based on vehicle parameters
    */
-  async trainModel(dataPoints: VehicleDataPoint[]): Promise<void> {
+  async trainModel(dataPoints: TimeseriesDataPoint[]): Promise<void> {
     if (this.isTraining || dataPoints.length < 100) {
       console.warn('Insufficient data for training (need at least 100 points)')
       return
@@ -114,7 +114,7 @@ export class MLOptimizationService {
   /**
    * Prepare and normalize training data
    */
-  private prepareTrainingData(dataPoints: VehicleDataPoint[]) {
+  private prepareTrainingData(dataPoints: TimeseriesDataPoint[]) {
     // Filter valid data points
     const validData = dataPoints.filter(point => 
       point.rpm > 0 &&
@@ -175,8 +175,8 @@ export class MLOptimizationService {
    * Find optimal RPM using the trained model
    */
   async findOptimalRpm(
-    currentData: VehicleDataPoint,
-    historicalData: VehicleDataPoint[]
+    currentData: TimeseriesDataPoint,
+    historicalData: TimeseriesDataPoint[]
   ): Promise<MLOptimizationResult> {
     // Train model if not already trained
     if (!this.model && historicalData.length >= 100) {
@@ -189,7 +189,7 @@ export class MLOptimizationService {
     }
 
     // Create RPM range to test (500 to 4000 in steps of 100)
-    const rpmRange = []
+    const rpmRange: number[] = []
     for (let rpm = 500; rpm <= 4000; rpm += 100) {
       rpmRange.push(rpm)
     }
@@ -237,7 +237,7 @@ export class MLOptimizationService {
 
     // Find optimal RPM range (within 90% of max efficiency)
     const threshold = maxEfficiency * 0.9
-    const efficientRpmRange = rpmRange.filter((rpm, i) => efficiencyValues[i][0] >= threshold)
+    const efficientRpmRange = rpmRange.filter((_rpm, i) => efficiencyValues[i][0] >= threshold)
     
     // Clean up tensors
     testTensor.dispose()
@@ -265,7 +265,7 @@ export class MLOptimizationService {
   /**
    * Fallback statistical optimization when ML model is not available
    */
-  private statisticalOptimization(dataPoints: VehicleDataPoint[]): MLOptimizationResult {
+  private statisticalOptimization(dataPoints: TimeseriesDataPoint[]): MLOptimizationResult {
     if (dataPoints.length === 0) {
       return {
         optimalRpm: 2000,
