@@ -21,8 +21,8 @@ export function useMLOptimization() {
 
     try {
       // Validate data
-      if (!dataPoints || dataPoints.length < 100) {
-        throw new Error('Need at least 100 data points for training')
+      if (!dataPoints || dataPoints.length < 10) {
+        throw new Error('Need at least 10 data points for training')
       }
 
       // Start training

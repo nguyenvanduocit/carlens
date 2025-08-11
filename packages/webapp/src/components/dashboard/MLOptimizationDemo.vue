@@ -223,7 +223,7 @@ const {
 
 // Computed properties
 const hasEnoughData = computed(() => {
-  return vehicleData.value && vehicleData.value.length >= 100
+  return vehicleData.value && vehicleData.value.length >= 10
 })
 
 const statusBadgeClass = computed(() => {
@@ -250,8 +250,8 @@ const statusText = computed(() => {
 
 // Methods
 const handleTrainModel = async () => {
-  if (!vehicleData.value || vehicleData.value.length < 100) {
-    error.value = 'Need at least 100 data points to train the model'
+  if (!vehicleData.value || vehicleData.value.length < 10) {
+    error.value = 'Need at least 10 data points to train the model'
     return
   }
   
@@ -273,7 +273,7 @@ onMounted(() => {
     // Auto-train after a short delay
     setTimeout(() => {
       handleTrainModel()
-    }, 1000)
+    }, 2000)
   }
 })
 </script>
