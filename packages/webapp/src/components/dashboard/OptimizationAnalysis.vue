@@ -1312,7 +1312,7 @@ const calculateVolumetricEfficiency = (intakePressure: number, barometricPressur
   return intakePressure > 0 ? Math.min(1.2, intakePressure / barometricPressure) : 0.85
 }
 
-const calculateThermalEfficiency = (coolantTemp: number, intakeTemp: number): number => {
+const calculateThermalEfficiency = (coolantTemp: number): number => {
   const optimalCoolantTemp = 90
   const tempDiff = Math.abs(coolantTemp - optimalCoolantTemp)
   return Math.max(0.7, 1 - (tempDiff / 100))
@@ -1590,7 +1590,6 @@ const calculateOptimalEngineSpeed = (data: Record<string, unknown>[]): Optimizat
   const enhancedDataPoints = dataPoints.map(point => {
     // Physics-based Brake Specific Fuel Consumption (BSFC) calculation
     const powerKw = point.power * 0.735499 // Convert PS to kW
-    const fuelRateKgH = point.fuelRateGs * 3.6 / 1000 // Convert g/s to kg/h
     
     // True BSFC calculation (g/kWh)
     const bsfc = powerKw > 0 ? (point.fuelRateGs * 3.6) / powerKw : 999
@@ -1601,7 +1600,7 @@ const calculateOptimalEngineSpeed = (data: Record<string, unknown>[]): Optimizat
     // Thermodynamic efficiency factors
     const airDensityFactor = calculateAirDensityFactor(point.intakeTemp, point.barometricPressure)
     const volumetricEfficiency = calculateVolumetricEfficiency(point.intakePressure, point.barometricPressure)
-    const thermalEfficiency = calculateThermalEfficiency(point.coolantTemp, point.intakeTemp)
+    const thermalEfficiency = calculateThermalEfficiency(point.coolantTemp)
     
     // Combined load factor (more sophisticated than simple average)
     const loadFactor = Math.max(point.calculatedLoad, point.absoluteLoad) / 100
