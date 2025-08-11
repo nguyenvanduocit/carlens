@@ -5,6 +5,8 @@
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.0+-4FC08D.svg)](https://vuejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-47A248.svg)](https://www.mongodb.com/)
 
+![](./assets/image.png)
+
 A modern vehicle analytics dashboard application that processes real-time telemetry data from OBD-II systems. Built as a full-stack TypeScript monorepo with Vue 3 frontend, Fastify backend, and MongoDB time-series storage.
 
 ## ✨ Features

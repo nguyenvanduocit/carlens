@@ -41,7 +41,7 @@
         <div class="text-center shrink-0">
           <div
             class="text-3xl md:text-5xl font-extrabold bg-gradient-to-br from-emerald-200 via-emerald-300 to-teal-200 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-            {{ Math.round(optimizationData.optimalRpm) }} RPM
+            {{ roundedOptimalRpm }} RPM
           </div>
           <div
             class="mt-1 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
@@ -69,14 +69,14 @@
         <div class="text-center px-0 md:px-4">
           <div class="text-[13px] text-slate-400">Power Output</div>
           <div class="mt-1 text-xl md:text-2xl font-semibold text-amber-300">
-            {{ Math.round(optimizationData.powerOutput) }} PS
+            {{ roundedPowerOutput }} PS
           </div>
         </div>
 
         <div class="text-center px-0 md:px-4">
           <div class="text-[13px] text-slate-400">Torque</div>
           <div class="mt-1 text-xl md:text-2xl font-semibold text-purple-300">
-            {{ Math.round(optimizationData.torque) }} N•m
+            {{ roundedTorque }} N•m
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3" aria-label="Summary Stats">
       <div class="rounded-lg border border-slate-700 bg-slate-800/30 p-3 text-center">
         <div class="text-xs text-slate-400">Average RPM</div>
-        <div class="mt-1 text-lg font-semibold text-slate-100">{{ Math.round(optimizationData.averageRpm) }}</div>
+        <div class="mt-1 text-lg font-semibold text-slate-100">{{ roundedAverageRpm }}</div>
       </div>
       <div class="rounded-lg border border-slate-700 bg-slate-800/30 p-3 text-center">
         <div class="text-xs text-slate-400">Efficiency Score</div>
@@ -98,22 +98,6 @@
         <div class="mt-1 text-lg font-semibold text-emerald-300">{{ ((optimizationData.dataQuality?.confidence || 0) *
           100).toFixed(0) }}%</div>
       </div>
-    </div>
-
-    <!-- View Toggles -->
-    <div class="flex flex-wrap items-center gap-2">
-      <button @click="showMethodology = !showMethodology" :aria-pressed="showMethodology"
-        class="rounded-md border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/60">
-        {{ showMethodology ? 'Hide' : 'Show' }} Methodology
-      </button>
-      <button @click="showLive = !showLive" :aria-pressed="showLive"
-        class="rounded-md border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/60">
-        {{ showLive ? 'Hide' : 'Show' }} Live Calculation
-      </button>
-      <button @click="showCharts = !showCharts" :aria-pressed="showCharts"
-        class="rounded-md border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/60">
-        {{ showCharts ? 'Hide' : 'Show' }} Charts
-      </button>
     </div>
 
     <!-- Calculation Methodology ---->
@@ -171,7 +155,7 @@
               <div class="flex justify-between">
                 <span>Confidence Score:</span>
                 <span class="text-green-300">{{ ((optimizationData.dataQuality?.confidence || 0) * 100).toFixed(1)
-                }}%</span>
+                  }}%</span>
               </div>
             </div>
           </div>
@@ -220,9 +204,11 @@
     <div v-show="showLive && optimizationData?.calculationSteps"
       class="bg-slate-800/30 border border-slate-700 rounded-lg p-6">
       <h4 class="text-lg font-semibold text-yellow-400 mb-4">Live Calculation with Your Data</h4>
-      
+
       <div class="mb-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded text-sm text-blue-200">
-        <strong>Real-Time Analysis:</strong> These calculations are performed on your actual driving data, analyzing {{ optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }} data points to find the most fuel-efficient engine speed for your specific vehicle and driving conditions.
+        <strong>Real-Time Analysis:</strong> These calculations are performed on your actual driving data, analyzing {{
+          optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }} data points to find the most
+        fuel-efficient engine speed for your specific vehicle and driving conditions.
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -237,40 +223,49 @@
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Total Data Points Analyzed:</span>
-                  <span class="text-blue-300 font-semibold">{{ optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }}</span>
+                  <span class="text-blue-300 font-semibold">{{
+                    optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }}</span>
                 </div>
                 <div class="text-xs text-slate-400">Each point represents a sensor reading captured during driving</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Engine RPM Operating Range:</span>
-                  <span class="text-blue-300 font-semibold">{{ optimizationData.calculationSteps?.minRpm }} - {{ optimizationData.calculationSteps?.maxRpm }} RPM</span>
+                  <span class="text-blue-300 font-semibold">{{ optimizationData.calculationSteps?.minRpm }} - {{
+                    optimizationData.calculationSteps?.maxRpm }} RPM</span>
                 </div>
                 <div class="text-xs text-slate-400">Typical range: 700-6000 RPM (idle to redline)</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Vehicle Speed Range:</span>
-                  <span class="text-blue-300 font-semibold">{{ optimizationData.calculationSteps?.minSpeed?.toFixed(1) }} - {{ optimizationData.calculationSteps?.maxSpeed?.toFixed(1) }} km/h</span>
+                  <span class="text-blue-300 font-semibold">{{ optimizationData.calculationSteps?.minSpeed?.toFixed(1)
+                    }} - {{ optimizationData.calculationSteps?.maxSpeed?.toFixed(1) }} km/h</span>
                 </div>
                 <div class="text-xs text-slate-400">From stationary to highway speeds</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Fuel Consumption Range:</span>
-                  <span class="text-blue-300 font-semibold">{{ optimizationData.calculationSteps?.minFuelRate?.toFixed(2) }} - {{ optimizationData.calculationSteps?.maxFuelRate?.toFixed(2) }} L/h</span>
+                  <span class="text-blue-300 font-semibold">{{
+                    optimizationData.calculationSteps?.minFuelRate?.toFixed(2) }} - {{
+                      optimizationData.calculationSteps?.maxFuelRate?.toFixed(2) }} L/h</span>
                 </div>
                 <div class="text-xs text-slate-400">Liters per hour - from idle to maximum load</div>
               </div>
-              
+
               <div class="bg-emerald-900/20 rounded p-2 mt-3">
                 <div class="text-xs text-emerald-200 font-medium mb-1">Data Quality Assessment:</div>
                 <div class="text-xs text-slate-300">
-                  With {{ optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }} data points across {{ Math.round((optimizationData.calculationSteps?.maxRpm || 0) - (optimizationData.calculationSteps?.minRpm || 0)) }} RPM range, 
-                  this analysis provides {{ optimizationData.calculationSteps && optimizationData.calculationSteps.totalDataPoints > 1000 ? 'high' : optimizationData.calculationSteps && optimizationData.calculationSteps.totalDataPoints > 500 ? 'moderate' : 'basic' }} statistical confidence.
+                  With {{ optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }} data points across {{
+                  rpmRange }} RPM range,
+                  this analysis provides {{ optimizationData.calculationSteps &&
+                    optimizationData.calculationSteps.totalDataPoints > 1000 ? 'high' : optimizationData.calculationSteps
+                      && optimizationData.calculationSteps.totalDataPoints > 500 ? 'moderate' : 'basic' }} statistical
+                  confidence.
                 </div>
               </div>
             </div>
@@ -279,63 +274,79 @@
           <div>
             <h5 class="font-medium text-purple-300 mb-3 flex items-center">
               <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-              Optimal {{ Math.round(optimizationData.optimalRpm) }} RPM Operating Conditions
+              Optimal {{ roundedOptimalRpm }} RPM Operating Conditions
             </h5>
             <div class="space-y-3 text-sm bg-slate-700/30 rounded p-4">
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Median Speed at Optimal RPM:</span>
-                  <span class="text-orange-300 font-semibold">{{ optimizationData.calculationSteps?.optimalMedianSpeed?.toFixed(1) }} km/h</span>
+                  <span class="text-orange-300 font-semibold">{{
+                    optimizationData.calculationSteps?.optimalMedianSpeed?.toFixed(1) }} km/h</span>
                 </div>
-                <div class="text-xs text-slate-400">Speed where engine operates most efficiently at {{ Math.round(optimizationData.optimalRpm) }} RPM</div>
+                <div class="text-xs text-slate-400">Speed where engine operates most efficiently at {{ roundedOptimalRpm
+                  }} RPM</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Fuel Consumption Rate:</span>
-                  <span class="text-orange-300 font-semibold">{{ optimizationData.calculationSteps?.optimalMedianFuelRate?.toFixed(2) }} L/h</span>
+                  <span class="text-orange-300 font-semibold">{{
+                    optimizationData.calculationSteps?.optimalMedianFuelRate?.toFixed(2) }} L/h</span>
                 </div>
-                <div class="text-xs text-slate-400">Equivalent to {{ ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 0) / 60).toFixed(3) }} L/min or {{ (((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 0) / 3.6) * 1000).toFixed(1) }} g/s</div>
+                <div class="text-xs text-slate-400">Equivalent to {{
+                  ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 0) / 60).toFixed(3) }} L/min or {{
+                    (((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 0) / 3.6) * 1000).toFixed(1) }} g/s
+                </div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Engine Power Output:</span>
-                  <span class="text-orange-300 font-semibold">{{ optimizationData.calculationSteps?.optimalMedianPower?.toFixed(1) }} PS</span>
+                  <span class="text-orange-300 font-semibold">{{
+                    optimizationData.calculationSteps?.optimalMedianPower?.toFixed(1) }} PS</span>
                 </div>
-                <div class="text-xs text-slate-400">{{ ((optimizationData.calculationSteps?.optimalMedianPower ?? 0) * 0.735499).toFixed(1) }} kW or {{ ((optimizationData.calculationSteps?.optimalMedianPower ?? 0) * 0.986320).toFixed(1) }} HP</div>
+                <div class="text-xs text-slate-400">{{ ((optimizationData.calculationSteps?.optimalMedianPower ?? 0) *
+                  0.735499).toFixed(1) }} kW or {{ ((optimizationData.calculationSteps?.optimalMedianPower ?? 0) *
+                  0.986320).toFixed(1) }} HP</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Engine Load Factor:</span>
-                  <span class="text-orange-300 font-semibold">{{ optimizationData.calculationSteps?.optimalMedianLoad?.toFixed(1) }}%</span>
+                  <span class="text-orange-300 font-semibold">{{
+                    optimizationData.calculationSteps?.optimalMedianLoad?.toFixed(1) }}%</span>
                 </div>
                 <div class="text-xs text-slate-400">Percentage of maximum engine capacity being used</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Air/Fuel Mixture Ratio:</span>
-                  <span class="text-orange-300 font-semibold">{{ optimizationData.calculationSteps?.airFuelRatio?.toFixed(2) }}:1</span>
+                  <span class="text-orange-300 font-semibold">{{
+                    optimizationData.calculationSteps?.airFuelRatio?.toFixed(2) }}:1</span>
                 </div>
-                <div class="text-xs text-slate-400">Stoichiometric ratio (~14.5:1 for diesel, but ~20:1 optimal for efficiency)</div>
+                <div class="text-xs text-slate-400">Stoichiometric ratio (~14.5:1 for diesel, but ~20:1 optimal for
+                  efficiency)</div>
               </div>
-              
+
               <div class="border-b border-slate-600/50 pb-2">
                 <div class="flex justify-between items-center mb-1">
                   <span class="text-slate-300">Volumetric Efficiency:</span>
-                  <span class="text-orange-300 font-semibold">{{ ((optimizationData.calculationSteps?.volumetricEfficiency ?? 0) * 100).toFixed(1) }}%</span>
+                  <span class="text-orange-300 font-semibold">{{
+                    ((optimizationData.calculationSteps?.volumetricEfficiency ?? 0) * 100).toFixed(1) }}%</span>
                 </div>
                 <div class="text-xs text-slate-400">Engine's ability to fill cylinders with air-fuel mixture</div>
               </div>
-              
+
               <div class="bg-purple-900/20 rounded p-2">
                 <div class="text-xs text-purple-200 font-medium mb-1">Intake System Performance:</div>
                 <div class="text-xs text-slate-300 space-y-1">
-                  <div>Manifold Pressure: {{ optimizationData.calculationSteps?.optimalMedianIntakePressure?.toFixed(1) }} kPa</div>
-                  <div>Air Temperature: {{ optimizationData.calculationSteps?.optimalMedianIntakeTemp?.toFixed(1) }}°C</div>
-                  <div>Coolant Temperature: {{ optimizationData.calculationSteps?.optimalMedianCoolantTemp?.toFixed(1) }}°C (optimal ~90°C)</div>
+                  <div>Manifold Pressure: {{ optimizationData.calculationSteps?.optimalMedianIntakePressure?.toFixed(1)
+                    }} kPa</div>
+                  <div>Air Temperature: {{ optimizationData.calculationSteps?.optimalMedianIntakeTemp?.toFixed(1) }}°C
+                  </div>
+                  <div>Coolant Temperature: {{ optimizationData.calculationSteps?.optimalMedianCoolantTemp?.toFixed(1)
+                    }}°C (optimal ~90°C)</div>
                 </div>
               </div>
             </div>
@@ -353,7 +364,8 @@
 
               <div class="bg-slate-700/30 rounded p-4">
                 <div class="font-medium text-blue-300 mb-3 flex items-center">
-                  <span class="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">1</span>
+                  <span
+                    class="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">1</span>
                   Base Fuel Efficiency Calculation
                 </div>
                 <div class="space-y-2 text-slate-300">
@@ -361,96 +373,118 @@
                     <strong>Formula:</strong> Distance per unit time ÷ Fuel consumed per unit time = Efficiency
                   </div>
                   <div class="font-mono text-xs bg-slate-600/50 rounded p-3">
-                    {{ optimizationData.calculationSteps?.optimalMedianSpeed?.toFixed(1) }} km/h ÷ {{ optimizationData.calculationSteps?.optimalMedianFuelRate?.toFixed(2) }} L/h = {{ optimizationData.calculationSteps?.baseFuelEfficiency?.toFixed(2) }} km/L
+                    {{ optimizationData.calculationSteps?.optimalMedianSpeed?.toFixed(1) }} km/h ÷ {{
+                      optimizationData.calculationSteps?.optimalMedianFuelRate?.toFixed(2) }} L/h = {{
+                      optimizationData.calculationSteps?.baseFuelEfficiency?.toFixed(2) }} km/L
                   </div>
                   <div class="text-xs text-slate-400 mt-2">
-                    This gives us {{ optimizationData.calculationSteps?.baseFuelEfficiency?.toFixed(2) }} kilometers per liter, equivalent to {{ (100 / (optimizationData.calculationSteps?.baseFuelEfficiency ?? 1)).toFixed(2) }} L/100km
+                    This gives us {{ optimizationData.calculationSteps?.baseFuelEfficiency?.toFixed(2) }} kilometers per
+                    liter, equivalent to {{ (100 / (optimizationData.calculationSteps?.baseFuelEfficiency ??
+                    1)).toFixed(2) }} L/100km
                   </div>
                 </div>
               </div>
 
               <div class="bg-slate-700/30 rounded p-4">
                 <div class="font-medium text-green-300 mb-3 flex items-center">
-                  <span class="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">2</span>
+                  <span
+                    class="bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">2</span>
                   Engine Load Correction Factor
                 </div>
                 <div class="space-y-2 text-slate-300">
                   <div class="text-xs mb-2">
-                    <strong>Why:</strong> Higher engine loads require more fuel per unit power output due to thermodynamic inefficiencies
+                    <strong>Why:</strong> Higher engine loads require more fuel per unit power output due to
+                    thermodynamic inefficiencies
                   </div>
                   <div class="font-mono text-xs bg-slate-600/50 rounded p-3 mb-2">
-                    Load Factor = 1 + ({{ optimizationData.calculationSteps?.optimalMedianLoad?.toFixed(1) }}% - 50%) ÷ 200 = {{ optimizationData.calculationSteps?.loadFactor?.toFixed(3) }}
+                    Load Factor = 1 + ({{ optimizationData.calculationSteps?.optimalMedianLoad?.toFixed(1) }}% - 50%) ÷
+                    200 = {{ optimizationData.calculationSteps?.loadFactor?.toFixed(3) }}
                   </div>
                   <div class="font-mono text-xs bg-slate-600/50 rounded p-3">
-                    Load-Corrected Efficiency = {{ optimizationData.calculationSteps?.baseFuelEfficiency?.toFixed(2) }} km/L ÷ {{ optimizationData.calculationSteps?.loadFactor?.toFixed(3) }} = {{ optimizationData.calculationSteps?.loadCorrectedEfficiency?.toFixed(2) }} km/L
+                    Load-Corrected Efficiency = {{ optimizationData.calculationSteps?.baseFuelEfficiency?.toFixed(2) }}
+                    km/L ÷ {{ optimizationData.calculationSteps?.loadFactor?.toFixed(3) }} = {{
+                      optimizationData.calculationSteps?.loadCorrectedEfficiency?.toFixed(2) }} km/L
                   </div>
                   <div class="text-xs text-slate-400 mt-2">
-                    Engine load of {{ optimizationData.calculationSteps?.optimalMedianLoad?.toFixed(1) }}% {{ (optimizationData.calculationSteps?.optimalMedianLoad ?? 50) > 50 ? 'increases' : 'decreases' }} fuel consumption by factor of {{ optimizationData.calculationSteps?.loadFactor?.toFixed(3) }}
+                    Engine load of {{ optimizationData.calculationSteps?.optimalMedianLoad?.toFixed(1) }}% {{
+                      (optimizationData.calculationSteps?.optimalMedianLoad ?? 50) > 50 ? 'increases' : 'decreases' }}
+                    fuel consumption by factor of {{ optimizationData.calculationSteps?.loadFactor?.toFixed(3) }}
                   </div>
                 </div>
               </div>
 
               <div class="bg-slate-700/30 rounded p-4">
                 <div class="font-medium text-yellow-300 mb-3 flex items-center">
-                  <span class="bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">3</span>
+                  <span
+                    class="bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">3</span>
                   Air/Fuel Ratio Optimization
                 </div>
                 <div class="space-y-2 text-slate-300">
                   <div class="text-xs mb-2">
-                    <strong>Theory:</strong> Optimal combustion occurs at specific air-to-fuel ratios. Deviations reduce efficiency.
+                    <strong>Theory:</strong> Optimal combustion occurs at specific air-to-fuel ratios. Deviations reduce
+                    efficiency.
                   </div>
                   <div class="font-mono text-xs bg-slate-600/50 rounded p-3 mb-2">
-                    AFR = {{ optimizationData.calculationSteps?.optimalMedianAirFlow?.toFixed(1) }} g/s ÷ {{ ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 0) / 3.6).toFixed(2) }} g/s = {{ optimizationData.calculationSteps?.airFuelRatio?.toFixed(2) }}:1
+                    AFR = {{ optimizationData.calculationSteps?.optimalMedianAirFlow?.toFixed(1) }} g/s ÷ {{
+                      ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 0) / 3.6).toFixed(2) }} g/s = {{
+                      optimizationData.calculationSteps?.airFuelRatio?.toFixed(2) }}:1
                   </div>
                   <div class="space-y-1 text-xs">
-                    <div>Current AFR: <span class="text-yellow-300">{{ optimizationData.calculationSteps?.airFuelRatio?.toFixed(2) }}:1</span></div>
+                    <div>Current AFR: <span class="text-yellow-300">{{
+                      optimizationData.calculationSteps?.airFuelRatio?.toFixed(2) }}:1</span></div>
                     <div>Optimal AFR: <span class="text-green-300">~20:1 (Diesel)</span></div>
-                    <div>AFR Efficiency: <span class="text-orange-300">{{ ((optimizationData.calculationSteps?.afrEfficiency ?? 0) * 100).toFixed(1) }}%</span></div>
+                    <div>AFR Efficiency: <span class="text-orange-300">{{
+                      ((optimizationData.calculationSteps?.afrEfficiency ?? 0) * 100).toFixed(1) }}%</span></div>
                   </div>
                   <div class="text-xs text-slate-400 mt-2">
-                    {{ Math.abs((optimizationData.calculationSteps?.airFuelRatio ?? 20) - 20) < 3 ? 'Excellent' : Math.abs((optimizationData.calculationSteps?.airFuelRatio ?? 20) - 20) < 6 ? 'Good' : 'Suboptimal' }} air/fuel mixture for diesel combustion efficiency
+                    {{ airFuelRatioStatus }} air/fuel mixture for diesel combustion efficiency
                   </div>
                 </div>
               </div>
 
               <div class="bg-slate-700/30 rounded p-4">
                 <div class="font-medium text-cyan-300 mb-3 flex items-center">
-                  <span class="bg-cyan-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">4</span>
+                  <span
+                    class="bg-cyan-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">4</span>
                   Environmental & Physical Corrections
                 </div>
                 <div class="space-y-3 text-slate-300">
                   <div class="border-l-2 border-cyan-400 pl-3">
                     <div class="text-xs font-medium text-cyan-200 mb-1">Temperature Efficiency</div>
                     <div class="text-xs">
-                      Current: {{ optimizationData.calculationSteps?.optimalMedianCoolantTemp?.toFixed(1) }}°C | 
-                      Optimal: ~90°C | 
-                      Efficiency: {{ ((optimizationData.calculationSteps?.temperatureEfficiency ?? 0) * 100).toFixed(1) }}%
+                      Current: {{ optimizationData.calculationSteps?.optimalMedianCoolantTemp?.toFixed(1) }}°C |
+                      Optimal: ~90°C |
+                      Efficiency: {{ ((optimizationData.calculationSteps?.temperatureEfficiency ?? 0) * 100).toFixed(1)
+                      }}%
                     </div>
                     <div class="text-xs text-slate-400 mt-1">
-                      {{ (optimizationData.calculationSteps?.optimalMedianCoolantTemp ?? 90) < 70 ? 'Engine running cold - reduced efficiency' : (optimizationData.calculationSteps?.optimalMedianCoolantTemp ?? 90) > 100 ? 'Engine running hot - potential damage risk' : 'Optimal operating temperature' }}
+                      {{ temperatureStatus }}
                     </div>
                   </div>
-                  
+
                   <div class="border-l-2 border-cyan-400 pl-3">
                     <div class="text-xs font-medium text-cyan-200 mb-1">Volumetric Efficiency</div>
                     <div class="text-xs">
-                      Intake Pressure: {{ optimizationData.calculationSteps?.optimalMedianIntakePressure?.toFixed(1) }} kPa | 
+                      Intake Pressure: {{ optimizationData.calculationSteps?.optimalMedianIntakePressure?.toFixed(1) }}
+                      kPa |
                       VE: {{ ((optimizationData.calculationSteps?.volumetricEfficiency ?? 0) * 100).toFixed(1) }}%
                     </div>
                     <div class="text-xs text-slate-400 mt-1">
-                      {{ (optimizationData.calculationSteps?.volumetricEfficiency ?? 0.8) > 0.9 ? 'Excellent cylinder filling' : (optimizationData.calculationSteps?.volumetricEfficiency ?? 0.8) > 0.8 ? 'Good cylinder filling' : 'Poor cylinder filling - check air filter/intake' }}
+                      {{ volumetricEfficiencyStatus }}
                     </div>
                   </div>
-                  
+
                   <div class="font-mono text-xs bg-slate-600/50 rounded p-3">
-                    Final Corrected Efficiency = {{ optimizationData.calculationSteps?.loadCorrectedEfficiency?.toFixed(2) }} km/L
+                    Final Corrected Efficiency = {{
+                      optimizationData.calculationSteps?.loadCorrectedEfficiency?.toFixed(2) }} km/L
                   </div>
                 </div>
               </div>
 
               <div class="bg-slate-700/30 rounded p-4">
                 <div class="font-medium text-purple-300 mb-3 flex items-center">
-                  <span class="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">5</span>
+                  <span
+                    class="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-2">5</span>
                   Multi-Factor Efficiency Score
                 </div>
                 <div class="space-y-2 text-slate-300">
@@ -460,18 +494,21 @@
                   <div class="grid grid-cols-2 gap-2 text-xs mb-3">
                     <div class="bg-slate-600/50 rounded p-2">
                       <div class="text-slate-300">BSFC Equivalent:</div>
-                      <div class="text-orange-300">{{ optimizationData.calculationSteps?.bsfcEquivalent?.toFixed(0) }} g/kWh</div>
+                      <div class="text-orange-300">{{ optimizationData.calculationSteps?.bsfcEquivalent?.toFixed(0) }}
+                        g/kWh</div>
                     </div>
                     <div class="bg-slate-600/50 rounded p-2">
                       <div class="text-slate-300">Power Output:</div>
-                      <div class="text-blue-300">{{ ((optimizationData.calculationSteps?.powerKw ?? 0)).toFixed(1) }} kW</div>
+                      <div class="text-blue-300">{{ ((optimizationData.calculationSteps?.powerKw ?? 0)).toFixed(1) }} kW
+                      </div>
                     </div>
                   </div>
                   <div class="font-mono text-xs bg-slate-600/50 rounded p-3">
                     Combined Efficiency Score = {{ optimizationData.calculationSteps?.finalScore?.toFixed(2) }}
                   </div>
                   <div class="text-xs text-slate-400 mt-2">
-                    Score incorporates: fuel consumption (25%), load efficiency (20%), torque curve (15%), RPM band (15%), AFR (10%), environmental factors (10%), driving style (5%)
+                    Score incorporates: fuel consumption (25%), load efficiency (20%), torque curve (15%), RPM band
+                    (15%), AFR (10%), environmental factors (10%), driving style (5%)
                   </div>
                 </div>
               </div>
@@ -479,7 +516,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="mt-6 p-4 bg-gradient-to-r from-emerald-900/20 to-blue-900/20 border border-emerald-700/50 rounded-lg">
         <h6 class="font-semibold text-emerald-200 mb-2 flex items-center">
           <span class="text-emerald-400 mr-2">🎯</span>
@@ -488,33 +525,39 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div class="bg-slate-700/30 rounded p-3">
             <div class="font-medium text-blue-300 mb-1">Best Efficiency</div>
-            <div class="text-lg font-bold text-emerald-300">{{ optimizationData.calculationSteps?.loadCorrectedEfficiency?.toFixed(2) }} km/L</div>
-            <div class="text-xs text-slate-400">At {{ Math.round(optimizationData.optimalRpm) }} RPM optimal point</div>
+            <div class="text-lg font-bold text-emerald-300">{{
+              optimizationData.calculationSteps?.loadCorrectedEfficiency?.toFixed(2) }} km/L</div>
+            <div class="text-xs text-slate-400">At {{ roundedOptimalRpm }} RPM optimal point</div>
           </div>
           <div class="bg-slate-700/30 rounded p-3">
             <div class="font-medium text-yellow-300 mb-1">Power Density</div>
-            <div class="text-lg font-bold text-amber-300">{{ ((optimizationData.calculationSteps?.powerKw ?? 0) / ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 1) / 3.6)).toFixed(1) }} kW/(g/s)</div>
+            <div class="text-lg font-bold text-amber-300">{{ ((optimizationData.calculationSteps?.powerKw ?? 0) /
+              ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 1) / 3.6)).toFixed(1) }} kW/(g/s)</div>
             <div class="text-xs text-slate-400">Power output per fuel consumption rate</div>
           </div>
           <div class="bg-slate-700/30 rounded p-3">
             <div class="font-medium text-purple-300 mb-1">Thermal Efficiency</div>
-            <div class="text-lg font-bold text-purple-300">{{ (((optimizationData.calculationSteps?.powerKw ?? 0) * 3600) / ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 1) * 42000) * 100).toFixed(1) }}%</div>
+            <div class="text-lg font-bold text-purple-300">{{ (((optimizationData.calculationSteps?.powerKw ?? 0) *
+              3600) / ((optimizationData.calculationSteps?.optimalMedianFuelRate ?? 1) * 42000) * 100).toFixed(1) }}%
+            </div>
             <div class="text-xs text-slate-400">Energy conversion efficiency estimate</div>
           </div>
         </div>
         <div class="mt-3 text-xs text-slate-300 border-t border-slate-600 pt-3">
-          <strong>Statistical Confidence:</strong> Based on {{ optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }} real driving data points, 
-          this analysis provides {{ optimizationData.calculationSteps && optimizationData.calculationSteps.totalDataPoints > 5000 ? 'very high' : optimizationData.calculationSteps && optimizationData.calculationSteps.totalDataPoints > 1000 ? 'high' : 'moderate' }} confidence in the optimal RPM recommendation.
+          <strong>Statistical Confidence:</strong> Based on {{
+            optimizationData.calculationSteps?.totalDataPoints?.toLocaleString() }} real driving data points,
+          this analysis provides {{ optimizationData.calculationSteps &&
+            optimizationData.calculationSteps.totalDataPoints > 5000 ? 'very high' : optimizationData.calculationSteps &&
+              optimizationData.calculationSteps.totalDataPoints > 1000 ? 'high' : 'moderate' }} confidence in the optimal
+          RPM recommendation.
         </div>
       </div>
-      
+
       <!-- Debug Download Button -->
       <div class="mt-4 flex justify-end">
-        <button
-          @click="downloadDebugData"
+        <button @click="downloadDebugData"
           class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg border border-blue-500 transition-colors"
-          title="Download optimization data for debugging"
-        >
+          title="Download optimization data for debugging">
           📥 Download Debug Data
         </button>
       </div>
@@ -543,7 +586,7 @@
       <div class="mt-4 text-sm text-slate-300">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <strong>Average RPM:</strong> {{ Math.round(optimizationData.averageRpm) }} RPM
+            <strong>Average RPM:</strong> {{ roundedAverageRpm }} RPM
           </div>
           <div>
             <strong>Efficiency Score:</strong> {{ optimizationData.efficiencyScore.toFixed(1) }}/10
@@ -665,6 +708,41 @@ const rpmBandWidth = computed(() => {
 })
 const recommendedRpmMin = computed(() => Math.max(0, optimalRpmValue.value - rpmBandWidth.value))
 const recommendedRpmMax = computed(() => optimalRpmValue.value + rpmBandWidth.value)
+
+// Computed properties for template calculations
+const airFuelRatioStatus = computed(() => {
+  const afr = optimizationData.value?.calculationSteps?.airFuelRatio ?? 20
+  const deviation = Math.abs(afr - 20)
+  return deviation < 3 ? 'Excellent' : deviation < 6 ? 'Good' : 'Suboptimal'
+})
+
+const temperatureStatus = computed(() => {
+  const temp = optimizationData.value?.calculationSteps?.optimalMedianCoolantTemp ?? 90
+  return temp < 70
+    ? 'Engine running cold - reduced efficiency'
+    : temp > 100
+      ? 'Engine running hot - potential damage risk'
+      : 'Optimal operating temperature'
+})
+
+const volumetricEfficiencyStatus = computed(() => {
+  const ve = optimizationData.value?.calculationSteps?.volumetricEfficiency ?? 0.8
+  return ve > 0.9
+    ? 'Excellent cylinder filling'
+    : ve > 0.8
+      ? 'Good cylinder filling'
+      : 'Poor cylinder filling - check air filter/intake'
+})
+
+const roundedOptimalRpm = computed(() => Math.round(optimizationData.value?.optimalRpm || 0))
+const roundedPowerOutput = computed(() => Math.round(optimizationData.value?.powerOutput || 0))
+const roundedTorque = computed(() => Math.round(optimizationData.value?.torque || 0))
+const roundedAverageRpm = computed(() => Math.round(optimizationData.value?.averageRpm || 0))
+const rpmRange = computed(() => {
+  const min = optimizationData.value?.calculationSteps?.minRpm || 0
+  const max = optimizationData.value?.calculationSteps?.maxRpm || 0
+  return Math.round(max - min)
+})
 
 
 // Event bus subscription
